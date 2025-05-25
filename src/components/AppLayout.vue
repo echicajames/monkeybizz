@@ -41,6 +41,14 @@
           <span class="mx-3">Inventory</span>
         </router-link>
         <router-link
+          to="/branches"
+          class="flex items-center px-6 py-3 transition-colors duration-200"
+          :class="$route.path === '/branches' ? 'bg-midnight-700 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-midnight-700 hover:text-white'"
+        >
+          <ClipboardDocumentListIcon class="h-5 w-5" />
+          <span class="mx-3">Branches</span>
+        </router-link>
+        <router-link
           to="/reports"
           class="flex items-center px-6 py-3 transition-colors duration-200"
           :class="$route.path === '/reports' ? 'bg-midnight-700 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-midnight-700 hover:text-white'"

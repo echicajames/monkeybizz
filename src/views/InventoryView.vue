@@ -145,7 +145,7 @@ const isTransferValid = computed(() => {
 })
 
 const handleRowClick = (stock: Stock) => {
-  alert(`Selected stock: ${stock.name}`)
+  router.push(`/inventory/main/${stock.id}`)
 }
 
 const handleCreateStock = (stockData: Omit<Stock, 'id'>) => {

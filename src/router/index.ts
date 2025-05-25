@@ -6,6 +6,7 @@ import DashboardView from '../views/DashboardView.vue'
 import InventoryView from '../views/InventoryView.vue'
 import ReportView from '../views/ReportView.vue'
 import UsersView from '../views/UsersView.vue'
+import BranchesView from '../views/BranchesView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,6 +25,18 @@ const router = createRouter({
       path: '/inventory',
       name: 'inventory',
       component: InventoryView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/inventory/:locationId/:stockId',
+      name: 'stock-details',
+      component: () => import('@/views/StockDetailsView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/branches',
+      name: 'branches',
+      component: BranchesView,
       meta: { requiresAuth: true }
     },
     {
@@ -54,11 +67,17 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
-  } else {
+  if (to.name === 'login') {
     next()
+    return
   }
+  
+  if (!authStore.isAuthenticated) {
+    next({ name: 'login' })
+    return
+  }
+  
+  next()
 })
 
 export default router 
