@@ -33,6 +33,14 @@
           <span class="mx-3">Dashboard</span>
         </router-link>
         <router-link
+          to="/sales"
+          class="flex items-center px-6 py-3 transition-colors duration-200"
+          :class="$route.path === '/sales' ? 'bg-midnight-700 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-midnight-700 hover:text-white'"
+        >
+          <CurrencyDollarIcon class="h-5 w-5" />
+          <span class="mx-3">Sales</span>
+        </router-link>
+        <router-link
           to="/inventory"
           class="flex items-center px-6 py-3 transition-colors duration-200"
           :class="$route.path === '/inventory' ? 'bg-midnight-700 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-midnight-700 hover:text-white'"
@@ -48,14 +56,40 @@
           <ClipboardDocumentListIcon class="h-5 w-5" />
           <span class="mx-3">Branches</span>
         </router-link>
-        <router-link
-          to="/reports"
-          class="flex items-center px-6 py-3 transition-colors duration-200"
-          :class="$route.path === '/reports' ? 'bg-midnight-700 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-midnight-700 hover:text-white'"
-        >
-          <ChartBarIcon class="h-5 w-5" />
-          <span class="mx-3">Reports</span>
-        </router-link>
+        <div class="relative">
+          <router-link
+            to="/reports"
+            class="flex items-center px-6 py-3 transition-colors duration-200"
+            :class="$route.path.startsWith('/reports') ? 'bg-midnight-700 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-midnight-700 hover:text-white'"
+          >
+            <ChartBarIcon class="h-5 w-5" />
+            <span class="mx-3">Reports</span>
+          </router-link>
+          
+          <div class="pl-11">
+            <router-link
+              to="/reports/daily-activity"
+              class="flex items-center px-6 py-2 transition-colors duration-200 text-sm"
+              :class="$route.path === '/reports/daily-activity' ? 'text-white' : 'text-gray-600 dark:text-gray-400 hover:text-white'"
+            >
+              Daily Activity
+            </router-link>
+            <router-link
+              to="/reports/sales"
+              class="flex items-center px-6 py-2 transition-colors duration-200 text-sm"
+              :class="$route.path === '/reports/sales' ? 'text-white' : 'text-gray-600 dark:text-gray-400 hover:text-white'"
+            >
+              Sales
+            </router-link>
+            <router-link
+              to="/reports/expenses"
+              class="flex items-center px-6 py-2 transition-colors duration-200 text-sm"
+              :class="$route.path === '/reports/expenses' ? 'text-white' : 'text-gray-600 dark:text-gray-400 hover:text-white'"
+            >
+              Expenses
+            </router-link>
+          </div>
+        </div>
         <router-link
           to="/users"
           class="flex items-center px-6 py-3 transition-colors duration-200"
@@ -97,7 +131,8 @@ import {
   UsersIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  CurrencyDollarIcon
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
