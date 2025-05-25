@@ -13,17 +13,33 @@
       <DataTable
         :columns="columns"
         :data="inventoryStore.getAllStocks"
+        :search-placeholder="'Search stocks...'"
         @row-click="handleRowClick"
         @action-click="handleActionClick"
       >
-        <template #transfer="{ item, onClick }">
-          <BaseButton
-            @click="onClick"
-            variant="secondary"
-            size="sm"
-          >
-            Transfer Stock
-          </BaseButton>
+        <template #actions="{ item }">
+          <div class="flex space-x-2">
+            <BaseButton
+              @click="(e) => {
+                e.stopPropagation();
+                handleActionClick({ item, action: 'transfer' });
+              }"
+              variant="secondary"
+              size="sm"
+            >
+              Transfer Stock
+            </BaseButton>
+            <BaseButton
+              @click="(e) => {
+                e.stopPropagation();
+                handleActionClick({ item, action: 'purchase' });
+              }"
+              variant="primary"
+              size="sm"
+            >
+              Purchase Stock
+            </BaseButton>
+          </div>
         </template>
       </DataTable>
 
@@ -40,55 +56,20 @@
       </Modal>
 
       <!-- Transfer Stock Modal -->
-      <Modal
-        :is-open="showTransferModal"
-        title="Transfer Stock"
+      <TransferStockModal
+        :show="showTransferModal"
+        :stock="selectedStock"
         @close="showTransferModal = false"
-      >
-        <div class="space-y-4">
-          <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Transferring stock: <span class="font-medium text-gray-900 dark:text-white">{{ selectedStock?.name }}</span>
-            </p>
-          </div>
-          <BaseSelect
-            v-model="transferLocation"
-            :options="locations"
-            label="Transfer to Location"
-            placeholder="Select Location"
-            required
-          />
-          <BaseInput
-            v-model="transferQuantity"
-            type="number"
-            label="Quantity to Transfer"
-            :min="1"
-            :max="selectedStock?.quantity"
-            required
-          />
-          <BaseSelect
-            v-model="transferBy"
-            :options="persons"
-            label="Transfer By"
-            placeholder="Select Person"
-            required
-          />
-          <div class="flex justify-end space-x-3 mt-4">
-            <BaseButton
-              @click="showTransferModal = false"
-              variant="outline"
-            >
-              Cancel
-            </BaseButton>
-            <BaseButton
-              @click="handleTransferSubmit"
-              :disabled="!isTransferValid"
-            >
-              Transfer
-            </BaseButton>
-          </div>
-        </div>
-      </Modal>
+        @transfer="handleTransferSubmit"
+      />
+
+      <!-- Purchase Stock Modal -->
+      <PurchaseStockModal
+        :show="showPurchaseModal"
+        :stock="selectedStock"
+        @close="showPurchaseModal = false"
+        @purchase="handlePurchaseSubmit"
+      />
     </div>
   </AppLayout>
 </template>
@@ -98,10 +79,10 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import DataTable from '@/components/common/DataTable.vue'
 import Modal from '@/components/common/Modal.vue'
-import BaseInput from '@/components/common/BaseInput.vue'
-import BaseSelect from '@/components/common/BaseSelect.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
 import StockForm from '@/components/stock/StockForm.vue'
+import TransferStockModal from '@/components/modals/TransferStockModal.vue'
+import PurchaseStockModal from '@/components/modals/PurchaseStockModal.vue'
 import { useInventoryStore } from '@/stores/inventory'
 import type { Stock } from '@/types/Stock'
 import AppLayout from '@/components/AppLayout.vue'
@@ -110,10 +91,8 @@ const router = useRouter()
 const inventoryStore = useInventoryStore()
 const showCreateModal = ref(false)
 const showTransferModal = ref(false)
+const showPurchaseModal = ref(false)
 const selectedStock = ref<Stock | null>(null)
-const transferLocation = ref('')
-const transferQuantity = ref<number>(1)
-const transferBy = ref('')
 
 const locations = [
   { id: 'main', name: 'Main' },
@@ -131,7 +110,7 @@ const columns = [
   { key: 'name', label: 'Stock Name' },
   { key: 'description', label: 'Description' },
   { key: 'quantity', label: 'Qty' },
-  { key: 'transfer', label: 'Actions', type: 'action' }
+  { key: 'actions', label: 'Actions', type: 'action' }
 ]
 
 const isTransferValid = computed(() => {
@@ -154,24 +133,31 @@ const handleCreateStock = (stockData: Omit<Stock, 'id'>) => {
 }
 
 const handleActionClick = ({ item, action }: { item: Stock; action: string }) => {
+  selectedStock.value = item
   if (action === 'transfer') {
-    selectedStock.value = item
-    transferQuantity.value = 1
-    transferLocation.value = ''
-    transferBy.value = ''
     showTransferModal.value = true
+  } else if (action === 'purchase') {
+    showPurchaseModal.value = true
   }
 }
 
-const handleTransferSubmit = () => {
-  if (selectedStock.value && isTransferValid.value) {
+const handleTransferSubmit = (data: { location: string; quantity: number; transferBy: string }) => {
+  if (selectedStock.value) {
     console.log('Transferring stock:', {
       stock: selectedStock.value,
-      quantity: transferQuantity.value,
-      toLocation: transferLocation.value,
-      by: transferBy.value
+      ...data
     })
     showTransferModal.value = false
+  }
+}
+
+const handlePurchaseSubmit = (data: { date: string; location: string; quantity: number; price: number; inputBy: string }) => {
+  if (selectedStock.value) {
+    console.log('Purchasing stock:', {
+      stock: selectedStock.value,
+      ...data
+    })
+    showPurchaseModal.value = false
   }
 }
 </script> 
