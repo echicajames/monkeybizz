@@ -2,6 +2,7 @@
 interface Column {
   key: string;
   label: string;
+  type?: 'action';
 }
 
 interface Props {
@@ -10,10 +11,15 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['rowClick'])
+const emit = defineEmits(['rowClick', 'actionClick'])
 
 const handleRowClick = (item: any) => {
   emit('rowClick', item)
+}
+
+const handleActionClick = (e: Event, item: any, action: string) => {
+  e.stopPropagation() // Prevent row click when clicking action button
+  emit('actionClick', { item, action })
 }
 </script>
 
@@ -44,7 +50,20 @@ const handleRowClick = (item: any) => {
             :key="column.key"
             class="py-4 px-6"
           >
-            {{ item[column.key] }}
+            <template v-if="column.type === 'action'">
+              <slot :name="column.key" :item="item" :onClick="(e: Event) => handleActionClick(e, item, column.key)">
+                <!-- Default action button if no slot is provided -->
+                <button
+                  @click="(e) => handleActionClick(e, item, column.key)"
+                  class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                >
+                  {{ column.label }}
+                </button>
+              </slot>
+            </template>
+            <template v-else>
+              {{ item[column.key] }}
+            </template>
           </td>
         </tr>
       </tbody>
