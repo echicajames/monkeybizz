@@ -12,7 +12,7 @@ const error = ref('')
 
 const handleLogin = async () => {
   if (authStore.login(username.value, password.value)) {
-    router.push('/dashboard')
+    await router.push('/dashboard')
   } else {
     error.value = 'Invalid credentials'
   }

@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 
 const themeStore = useThemeStore()
 
 onMounted(() => {
   themeStore.initTheme()
+})
+
+// Watch for theme changes
+watch(() => themeStore.current, (newTheme) => {
+  document.documentElement.classList.remove('light', 'dark', 'midnight')
+  document.documentElement.classList.add(newTheme)
 })
 </script>
 
@@ -40,8 +46,8 @@ body {
   @apply min-h-screen w-full;
 }
 
-/* Theme-specific styles */
-.light {
+/* Theme Variables */
+:root {
   --bg-primary: theme('colors.gray.100');
   --bg-secondary: theme('colors.white');
   --text-primary: theme('colors.gray.900');
@@ -63,5 +69,14 @@ body {
   --text-primary: theme('colors.gray.100');
   --text-secondary: theme('colors.gray.400');
   --border-color: theme('colors.midnight.700');
+}
+
+/* Base text color for each theme */
+.light {
+  @apply text-gray-900;
+}
+
+.dark, .midnight {
+  @apply text-gray-100;
 }
 </style>
