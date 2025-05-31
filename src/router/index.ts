@@ -82,29 +82,47 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: LoginView
+      component: LoginView,
+      meta: { requiresAuth: false }
     },
     {
       path: '/register',
       name: 'register',
-      component: RegisterView
+      component: RegisterView,
+      meta: { requiresAuth: false }
     }
   ]
 })
 
-router.beforeEach((to, from, next) => {
+// Global auth flag to prevent multiple initializations
+let authInitialized = false
+
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
-  if (to.name === 'login') {
+  // Skip auth check for login and register
+  if (to.meta.requiresAuth === false) {
     next()
     return
   }
-  
-  if (!authStore.isAuthenticated) {
+
+  // Initialize auth only once
+  if (!authInitialized) {
+    try {
+      await authStore.initializeAuth()
+    } catch (error) {
+      console.error('Auth initialization failed:', error)
+    } finally {
+      authInitialized = true
+    }
+  }
+
+  // After initialization, check auth requirements
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'login' })
     return
   }
-  
+
   next()
 })
 

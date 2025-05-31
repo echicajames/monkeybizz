@@ -1,52 +1,88 @@
 import { defineStore } from 'pinia'
+import api, { csrf } from '@/services/api'
 
 interface User {
-  username: string
-  isAdmin: boolean
+  id: number
+  name: string
+  email: string
+  // Add other user properties as needed
 }
 
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
+  initialized: boolean
+  initializationInProgress: boolean
 }
 
 export const useAuthStore = defineStore('auth', {
-  state: (): AuthState => {
-    const savedUser = localStorage.getItem('user')
-    const savedAuth = localStorage.getItem('isAuthenticated')
-    
-    return {
-      user: savedUser ? JSON.parse(savedUser) : null,
-      isAuthenticated: savedAuth === 'true'
-    }
-  },
-  
+  state: (): AuthState => ({
+    user: null,
+    isAuthenticated: false,
+    initialized: false,
+    initializationInProgress: false
+  }),
+
   actions: {
-    login(username: string, password: string) {
-      // Static account check
-      if (username === 'admin' && password === 'password') {
-        this.user = {
-          username: 'admin',
-          isAdmin: true
-        }
-        this.isAuthenticated = true
-        
-        // Save to localStorage
-        localStorage.setItem('user', JSON.stringify(this.user))
-        localStorage.setItem('isAuthenticated', 'true')
-        
-        return true
+    async initializeAuth() {
+      // Prevent multiple simultaneous initialization attempts
+      if (this.initializationInProgress || this.initialized) {
+        return
       }
-      return false
+
+      this.initializationInProgress = true
+
+      try {
+        // Get CSRF token
+        await csrf()
+        // Check if user is authenticated
+        const response = await api.get('/user');
+        
+        // To do
+        this.user = response.data
+        this.isAuthenticated = true
+      } catch (error) {
+        this.user = null
+        this.isAuthenticated = false
+        // Don't throw the error, just handle it silently
+      } finally {
+        this.initialized = true
+        this.initializationInProgress = false
+      }
     },
-    
-    logout() {
-      this.user = null
-      this.isAuthenticated = false
-      
-      // Clear localStorage
-      localStorage.removeItem('user')
-      localStorage.removeItem('isAuthenticated')
+
+    async login(email: string, password: string) {
+      try {
+        // Get CSRF token first
+        await csrf()
+        
+        // Attempt login
+        const response = await api.post('/login', { email, password })
+        
+        console.log('response', response);
+        if (response.data.user) {
+          this.user = response.data.user
+          this.isAuthenticated = true
+          this.initialized = true
+        }
+        
+        return response
+      } catch (error) {
+        this.user = null
+        this.isAuthenticated = false
+        throw error
+      }
+    },
+
+    async logout() {
+      try {
+        await api.post('/logout')
+      } finally {
+        this.user = null
+        this.isAuthenticated = false
+        this.initialized = false
+        this.initializationInProgress = false
+      }
     }
   }
 }) 

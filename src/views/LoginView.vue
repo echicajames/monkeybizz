@@ -6,15 +6,26 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const error = ref('')
+const isLoading = ref(false)
 
-const handleLogin = async () => {
-  if (authStore.login(username.value, password.value)) {
-    await router.push('/dashboard')
-  } else {
-    error.value = 'Invalid credentials'
+const handleLogin = async (e: Event) => {
+  e.preventDefault() // Prevent form submission
+  if (isLoading.value) return
+
+  error.value = ''
+  isLoading.value = true
+
+  try {
+    await authStore.login(email.value, password.value)
+    console.log(' To dashboard --->')
+    // await router.push('/dashboard')
+  } catch (e: any) {
+    error.value = e.response?.data?.message || 'Invalid credentials'
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -31,18 +42,19 @@ const handleLogin = async () => {
           </router-link>
         </p>
       </div>
-      <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
+      <form class="mt-8 space-y-6" @submit="handleLogin">
         <div class="rounded-md shadow-sm -space-y-px">
           <div>
-            <label for="username" class="sr-only">Username</label>
+            <label for="email" class="sr-only">Email address</label>
             <input
-              id="username"
-              v-model="username"
-              name="username"
-              type="text"
+              id="email"
+              v-model="email"
+              name="email"
+              type="email"
               required
+              :disabled="isLoading"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-midnight-600 placeholder-gray-500 text-gray-100 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-midnight-800"
-              placeholder="Username"
+              placeholder="Email address"
             />
           </div>
           <div>
@@ -53,6 +65,7 @@ const handleLogin = async () => {
               name="password"
               type="password"
               required
+              :disabled="isLoading"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-midnight-600 placeholder-gray-500 text-gray-100 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-midnight-800"
               placeholder="Password"
             />
@@ -64,9 +77,11 @@ const handleLogin = async () => {
         <div>
           <button
             type="submit"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            :disabled="isLoading"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign in
+            <span v-if="isLoading">Signing in...</span>
+            <span v-else>Sign in</span>
           </button>
         </div>
       </form>

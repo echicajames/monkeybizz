@@ -1,22 +1,39 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import api, { csrf } from '@/services/api'
 
 const router = useRouter()
 
-const username = ref('')
+const name = ref('')
+const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const error = ref('')
 
 const handleRegister = async () => {
-  if (password.value !== confirmPassword.value) {
-    error.value = 'Passwords do not match'
-    return
+  try {
+    if (password.value !== confirmPassword.value) {
+      error.value = 'Passwords do not match'
+      return
+    }
+
+    // Get CSRF token
+    await csrf()
+    
+    // Register the user
+    await api.post('/register', {
+      name: name.value,
+      email: email.value,
+      password: password.value,
+      password_confirmation: confirmPassword.value
+    })
+    
+    // Redirect to login after successful registration
+    router.push('/login')
+  } catch (e: any) {
+    error.value = e.response?.data?.message || 'An error occurred during registration'
   }
-  
-  // For now, just redirect to login since we're using static credentials
-  router.push('/login')
 }
 </script>
 
@@ -35,15 +52,27 @@ const handleRegister = async () => {
       <form class="mt-8 space-y-6" @submit.prevent="handleRegister">
         <div class="rounded-md shadow-sm -space-y-px">
           <div>
-            <label for="username" class="sr-only">Username</label>
+            <label for="name" class="sr-only">Name</label>
             <input
-              id="username"
-              v-model="username"
-              name="username"
+              id="name"
+              v-model="name"
+              name="name"
               type="text"
               required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-midnight-600 placeholder-gray-500 text-gray-100 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-midnight-800"
-              placeholder="Username"
+              placeholder="Full Name"
+            />
+          </div>
+          <div>
+            <label for="email" class="sr-only">Email</label>
+            <input
+              id="email"
+              v-model="email"
+              name="email"
+              type="email"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-midnight-600 placeholder-gray-500 text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-midnight-800"
+              placeholder="Email address"
             />
           </div>
           <div>

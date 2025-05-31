@@ -16,6 +16,13 @@ export default defineConfig({
   server: {
     port: 8080,
     strictPort: true, // Force it to use only port 8080
-    host: true // Allow external access
+    host: true, // Allow external access
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   }
 }) 
