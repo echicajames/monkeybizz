@@ -13,18 +13,25 @@ interface AuthState {
   isAuthenticated: boolean
   initialized: boolean
   initializationInProgress: boolean
+  token: string | null
 }
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
-    user: null,
-    isAuthenticated: false,
+    user: JSON.parse(localStorage.getItem('user') || 'null'),
+    isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
     initialized: false,
-    initializationInProgress: false
+    initializationInProgress: false,
+    token: localStorage.getItem('token')
   }),
 
   actions: {
     async initializeAuth() {
+      // If we have a token, set it in the API headers
+      if (this.token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
+      }
+
       // Prevent multiple simultaneous initialization attempts
       if (this.initializationInProgress || this.initialized) {
         return
@@ -36,19 +43,36 @@ export const useAuthStore = defineStore('auth', {
         // Get CSRF token
         await csrf()
         // Check if user is authenticated
-        const response = await api.get('/user');
-
-        // To do
+        const response = await api.get('/user')
+        
         this.user = response.data
         this.isAuthenticated = true
+        this.persistAuthState()
       } catch (error) {
-        this.user = null
-        this.isAuthenticated = false
-        // Don't throw the error, just handle it silently
+        this.clearAuthState()
       } finally {
         this.initialized = true
         this.initializationInProgress = false
       }
+    },
+
+    persistAuthState() {
+      localStorage.setItem('user', JSON.stringify(this.user))
+      localStorage.setItem('isAuthenticated', String(this.isAuthenticated))
+      if (this.token) {
+        localStorage.setItem('token', this.token)
+        api.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
+      }
+    },
+
+    clearAuthState() {
+      this.user = null
+      this.isAuthenticated = false
+      this.token = null
+      localStorage.removeItem('user')
+      localStorage.removeItem('isAuthenticated')
+      localStorage.removeItem('token')
+      delete api.defaults.headers.common['Authorization']
     },
 
     async login(email: string, password: string) {
@@ -59,18 +83,22 @@ export const useAuthStore = defineStore('auth', {
         // Attempt login
         const response = await api.post('/login', { email, password })
         
-        console.log('response.data.user', response.data.data.user);
         if (response.data.data.user) {
-          this.user = response.data.data.user;
-          console.log('this.user', this.user);
+          this.user = response.data.data.user
           this.isAuthenticated = true
           this.initialized = true
+          
+          // Store the token if it's in the response
+          if (response.data.data.token) {
+            this.token = response.data.data.token
+          }
+          
+          this.persistAuthState()
         }
         
         return response
       } catch (error) {
-        this.user = null
-        this.isAuthenticated = false
+        this.clearAuthState()
         throw error
       }
     },
@@ -79,8 +107,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         await api.post('/logout')
       } finally {
-        this.user = null
-        this.isAuthenticated = false
+        this.clearAuthState()
         this.initialized = false
         this.initializationInProgress = false
       }

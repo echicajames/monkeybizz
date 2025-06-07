@@ -102,17 +102,26 @@ router.beforeEach(async (to, from, next) => {
   
   // Skip auth check for login and register
   if (to.meta.requiresAuth === false) {
+    // If user is already authenticated and tries to access login/register, redirect to dashboard
+    if (authStore.isAuthenticated) {
+      next({ name: 'dashboard' })
+      return
+    }
     next()
     return
   }
 
-  // Initialize auth only once
-  if(authStore.isAuthenticated) {
-  // if (!authInitialized) {
+  // Initialize auth only once if not already initialized
+  if (!authInitialized) {
     try {
       await authStore.initializeAuth()
     } catch (error) {
       console.error('Auth initialization failed:', error)
+      // If initialization fails and we're not on a public route, go to login
+      if (to.meta.requiresAuth) {
+        next({ name: 'login' })
+        return
+      }
     } finally {
       authInitialized = true
     }
@@ -120,8 +129,6 @@ router.beforeEach(async (to, from, next) => {
 
   // After initialization, check auth requirements
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    
-    console.log('authStore.isAuthenticated', authStore.isAuthenticated);
     next({ name: 'login' })
     return
   }
