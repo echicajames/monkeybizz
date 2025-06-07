@@ -9,10 +9,22 @@
           Create Stock
         </BaseButton>
       </div>
+
+      <!-- Error Message -->
+      <div v-if="error" class="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
+        {{ error }}
+      </div>
       
+      <!-- Loading State -->
+      <div v-if="loading" class="text-center py-4">
+        Loading stocks...
+      </div>
+
+      <!-- Data Table -->
       <DataTable
+        v-else
         :columns="columns"
-        :data="inventoryStore.getAllStocks"
+        :data="stocks"
         :search-placeholder="'Search stocks...'"
         @row-click="handleRowClick"
         @action-click="handleActionClick"
@@ -75,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DataTable from '@/components/common/DataTable.vue'
 import Modal from '@/components/common/Modal.vue'
@@ -83,53 +95,65 @@ import BaseButton from '@/components/common/BaseButton.vue'
 import StockForm from '@/components/stock/StockForm.vue'
 import TransferStockModal from '@/components/modals/TransferStockModal.vue'
 import PurchaseStockModal from '@/components/modals/PurchaseStockModal.vue'
-import { useInventoryStore } from '@/stores/inventory'
-import type { Stock } from '@/types/Stock'
 import AppLayout from '@/components/AppLayout.vue'
+import { stocksApi } from '@/services/api/stocks'
+import type { Stock } from '@/services/api/stocks'
 
 const router = useRouter()
-const inventoryStore = useInventoryStore()
 const showCreateModal = ref(false)
 const showTransferModal = ref(false)
 const showPurchaseModal = ref(false)
 const selectedStock = ref<Stock | null>(null)
+const stocks = ref<Stock[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
 
-const locations = [
-  { id: 'main', name: 'Main' },
-  { id: 'branch1', name: 'Branch 1' },
-  { id: 'branch2', name: 'Branch 2' }
-]
+interface Column {
+  key: string
+  label: string
+  type?: 'action'
+}
 
-const persons = [
-  { id: 'person1', name: 'Person 1' },
-  { id: 'person2', name: 'Person 2' }
-]
-
-const columns = [
-  { key: 'id', label: 'Stock ID' },
-  { key: 'name', label: 'Stock Name' },
-  { key: 'description', label: 'Description' },
-  { key: 'quantity', label: 'Qty' },
+const columns: Column[] = [
+  { key: 'stock_code', label: 'Stock Code' },
+  { key: 'stock_name', label: 'Stock Name' },
+  { key: 'stock_type', label: 'Type' },
+  { key: 'stock_status', label: 'Status' },
   { key: 'actions', label: 'Actions', type: 'action' }
 ]
 
-const isTransferValid = computed(() => {
-  return (
-    transferLocation.value &&
-    transferQuantity.value > 0 &&
-    selectedStock.value &&
-    transferQuantity.value <= selectedStock.value.quantity &&
-    transferBy.value
-  )
-})
-
-const handleRowClick = (stock: Stock) => {
-  router.push(`/inventory/main/${stock.id}`)
+const fetchStocks = async () => {
+  loading.value = true
+  error.value = null
+  try {
+    const response = await stocksApi.getAllStocks({
+      status: 'active',
+      page: 1
+    })
+    stocks.value = response.data.data || []
+  } catch (err) {
+    error.value = 'Failed to fetch stocks'
+    console.error('Error fetching stocks:', err)
+  } finally {
+    loading.value = false
+  }
 }
 
-const handleCreateStock = (stockData: Omit<Stock, 'id'>) => {
-  console.log('Creating stock:', stockData)
-  showCreateModal.value = false
+const handleRowClick = (stock: Stock) => {
+  router.push(`/inventory/${stock.stock_id}`)
+}
+
+const handleCreateStock = async (stockData: Omit<Stock, 'stock_id' | 'date_created'>) => {
+  try {
+    await stocksApi.createStock({
+      ...stockData,
+      userid: 1 // Replace with actual logged-in user ID
+    })
+    showCreateModal.value = false
+    fetchStocks() // Refresh the list
+  } catch (err) {
+    console.error('Error creating stock:', err)
+  }
 }
 
 const handleActionClick = ({ item, action }: { item: Stock; action: string }) => {
@@ -141,23 +165,36 @@ const handleActionClick = ({ item, action }: { item: Stock; action: string }) =>
   }
 }
 
-const handleTransferSubmit = (data: { location: string; quantity: number; transferBy: string }) => {
+const handleTransferSubmit = async (data: { location: string; quantity: number; transferBy: string }) => {
   if (selectedStock.value) {
-    console.log('Transferring stock:', {
-      stock: selectedStock.value,
-      ...data
-    })
-    showTransferModal.value = false
+    try {
+      await stocksApi.updateStock(selectedStock.value.stock_id, {
+        // Add your transfer logic here
+      })
+      showTransferModal.value = false
+      fetchStocks() // Refresh the list
+    } catch (err) {
+      console.error('Error transferring stock:', err)
+    }
   }
 }
 
-const handlePurchaseSubmit = (data: { date: string; location: string; quantity: number; price: number; inputBy: string }) => {
+const handlePurchaseSubmit = async (data: { date: string; location: string; quantity: number; price: number; inputBy: string }) => {
   if (selectedStock.value) {
-    console.log('Purchasing stock:', {
-      stock: selectedStock.value,
-      ...data
-    })
-    showPurchaseModal.value = false
+    try {
+      await stocksApi.updateStock(selectedStock.value.stock_id, {
+        // Add your purchase logic here
+      })
+      showPurchaseModal.value = false
+      fetchStocks() // Refresh the list
+    } catch (err) {
+      console.error('Error purchasing stock:', err)
+    }
   }
 }
+
+// Fetch stocks when component mounts
+onMounted(() => {
+  fetchStocks()
+})
 </script> 

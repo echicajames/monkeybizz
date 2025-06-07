@@ -1,95 +1,80 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import BaseInput from '@/components/common/BaseInput.vue'
-import BaseSelect from '@/components/common/BaseSelect.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
+import type { CreateStockData } from '@/services/api/stocks'
 
-interface StockFormData {
-  name: string;
-  quantity: number;
-  description: string;
-  location: string;
-  createdBy: string;
-}
+const emit = defineEmits<{
+  (e: 'save', data: CreateStockData): void
+  (e: 'cancel'): void
+}>()
 
-const emit = defineEmits(['save', 'cancel'])
-
-const formData = ref<StockFormData>({
-  name: '',
-  quantity: 0,
-  description: '',
-  location: 'main',
-  createdBy: ''
+const formData = ref<CreateStockData>({
+  stock_code: '',
+  stock_name: '',
+  stock_type: '',
+  stock_status: 'active',
+  userid: 1 // This should be replaced with the actual logged-in user's ID
 })
-
-const locations = [
-  { id: 'main', name: 'Main' },
-  { id: 'branch1', name: 'Branch 1' },
-  { id: 'branch2', name: 'Branch 2' }
-]
-
-const persons = [
-  { id: 'person1', name: 'Person 1' },
-  { id: 'person2', name: 'Person 2' }
-]
 
 const handleSubmit = () => {
   emit('save', { ...formData.value })
-}
-
-const handleCancel = () => {
-  emit('cancel')
 }
 </script>
 
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-4">
-    <BaseInput
-      v-model="formData.name"
-      label="Stock Name"
-      required
-    />
+    <div>
+      <label for="stock_code" class="block text-sm font-medium text-gray-300">Stock Code</label>
+      <input
+        id="stock_code"
+        v-model="formData.stock_code"
+        type="text"
+        required
+        class="mt-1 block w-full rounded-md bg-midnight-800 border-midnight-600 text-white focus:border-indigo-500 focus:ring-indigo-500"
+      />
+    </div>
 
-    <BaseInput
-      v-model="formData.quantity"
-      type="number"
-      label="Initial Quantity"
-      min="0"
-      required
-    />
+    <div>
+      <label for="stock_name" class="block text-sm font-medium text-gray-300">Stock Name</label>
+      <input
+        id="stock_name"
+        v-model="formData.stock_name"
+        type="text"
+        required
+        class="mt-1 block w-full rounded-md bg-midnight-800 border-midnight-600 text-white focus:border-indigo-500 focus:ring-indigo-500"
+      />
+    </div>
 
-    <BaseInput
-      v-model="formData.description"
-      label="Description"
-      type="textarea"
-    />
+    <div>
+      <label for="stock_type" class="block text-sm font-medium text-gray-300">Stock Type</label>
+      <input
+        id="stock_type"
+        v-model="formData.stock_type"
+        type="text"
+        required
+        class="mt-1 block w-full rounded-md bg-midnight-800 border-midnight-600 text-white focus:border-indigo-500 focus:ring-indigo-500"
+      />
+    </div>
 
-    <BaseSelect
-      v-model="formData.location"
-      :options="locations"
-      label="Location"
-      required
-    />
-
-    <BaseSelect
-      v-model="formData.createdBy"
-      :options="persons"
-      label="Created By"
-      placeholder="Select Person"
-      required
-    />
-
-    <div class="flex justify-end space-x-3">
-      <BaseButton
-        type="button"
-        variant="outline"
-        @click="handleCancel"
+    <div>
+      <label for="stock_status" class="block text-sm font-medium text-gray-300">Status</label>
+      <select
+        id="stock_status"
+        v-model="formData.stock_status"
+        required
+        class="mt-1 block w-full rounded-md bg-midnight-800 border-midnight-600 text-white focus:border-indigo-500 focus:ring-indigo-500"
       >
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+        <option value="out_of_stock">Out of Stock</option>
+      </select>
+    </div>
+
+    <div class="flex justify-end space-x-3 pt-4">
+      <BaseButton type="button" variant="secondary" @click="$emit('cancel')">
         Cancel
       </BaseButton>
-      <BaseButton
-        type="submit"
-      >
+      <BaseButton type="submit" variant="primary">
         Save
       </BaseButton>
     </div>
