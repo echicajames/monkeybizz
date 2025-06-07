@@ -37,7 +37,7 @@ export const useAuthStore = defineStore('auth', {
         await csrf()
         // Check if user is authenticated
         const response = await api.get('/user');
-        
+
         // To do
         this.user = response.data
         this.isAuthenticated = true
@@ -59,9 +59,10 @@ export const useAuthStore = defineStore('auth', {
         // Attempt login
         const response = await api.post('/login', { email, password })
         
-        console.log('response', response);
-        if (response.data.user) {
-          this.user = response.data.user
+        console.log('response.data.user', response.data.data.user);
+        if (response.data.data.user) {
+          this.user = response.data.data.user;
+          console.log('this.user', this.user);
           this.isAuthenticated = true
           this.initialized = true
         }

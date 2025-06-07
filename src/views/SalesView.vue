@@ -8,4 +8,10 @@
 
 <script setup lang="ts">
 import AppLayout from '@/components/AppLayout.vue'
+
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+
+console.log('authStore', authStore.isAuthenticated);
 </script> 

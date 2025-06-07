@@ -107,7 +107,8 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // Initialize auth only once
-  if (!authInitialized) {
+  if(authStore.isAuthenticated) {
+  // if (!authInitialized) {
     try {
       await authStore.initializeAuth()
     } catch (error) {
@@ -119,6 +120,8 @@ router.beforeEach(async (to, from, next) => {
 
   // After initialization, check auth requirements
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    
+    console.log('authStore.isAuthenticated', authStore.isAuthenticated);
     next({ name: 'login' })
     return
   }

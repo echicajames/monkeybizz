@@ -21,7 +21,7 @@ const handleLogin = async (e: Event) => {
   try {
     await authStore.login(email.value, password.value)
     console.log(' To dashboard --->')
-    // await router.push('/dashboard')
+    await router.push('/dashboard')
   } catch (e: any) {
     error.value = e.response?.data?.message || 'Invalid credentials'
   } finally {
