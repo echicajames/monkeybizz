@@ -26,7 +26,6 @@
 
       <!-- Content -->
       <div v-else-if="stock && branch" class="space-y-8">
-        Lets go
         <!-- Stock Info Card -->
         <div class="bg-white/10 dark:bg-gray-800/50 rounded-lg p-6 shadow-lg">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -73,11 +72,13 @@ import { useBranchesStore } from '@/stores/branches'
 import type { Stock } from '@/services/api/stocks'
 import type { Transaction } from '@/types/Transaction'
 import type { Branch } from '@/services/api/branches'
+import { useInventory } from '@/composables/useInventory'
 
 const route = useRoute()
 const router = useRouter()
 const inventoryStore = useInventoryStore()
 const branchesStore = useBranchesStore()
+const { getInventoryByStockAndBranch } = useInventory()
 
 const stock = ref<Stock | null>(null)
 const branch = ref<Branch | null>(null)
@@ -125,8 +126,23 @@ const rawTransactions = ref<Transaction[]>([
 
 const stocks = computed(() => inventoryStore.stocks)
 
+async function getStockInventory(stockId: number, locationId: number) {
+  
+  try {
+    const stock = await getInventoryByStockAndBranch(stockId, locationId);
+    console.log('getInventoryByStockAndBranch', stock);
+  } catch (error) {
+    throw new Error('Failed to get stock inventory');
+  }
+}
+
 onMounted(async () => {
   await inventoryStore.fetchStocks();
+
+  const stockId = parseInt(route.params.stockId as string)
+  const locationId = parseInt(route.params.locationId as string)
+  await getStockInventory(stockId, locationId);
+
   try {
     loading.value = true
     error.value = null
