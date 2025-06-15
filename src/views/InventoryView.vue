@@ -17,7 +17,8 @@
       
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-4">
-        Loading stocks...
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-indigo-600"></div>
+        <p class="mt-2 text-gray-400">Loading stocks...</p>
       </div>
 
       <!-- Data Table -->
@@ -87,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import DataTable from '@/components/common/DataTable.vue'
 import Modal from '@/components/common/Modal.vue'
@@ -96,17 +97,21 @@ import StockForm from '@/components/stock/StockForm.vue'
 import TransferStockModal from '@/components/modals/TransferStockModal.vue'
 import PurchaseStockModal from '@/components/modals/PurchaseStockModal.vue'
 import AppLayout from '@/components/AppLayout.vue'
-import { stocksApi } from '@/services/api/stocks'
-import type { Stock } from '@/services/api/stocks'
+import { useInventoryStore } from '@/stores/inventory'
+import type { Stock, CreateStockData } from '@/services/api/stocks'
 
 const router = useRouter()
+const inventoryStore = useInventoryStore()
+
 const showCreateModal = ref(false)
 const showTransferModal = ref(false)
 const showPurchaseModal = ref(false)
 const selectedStock = ref<Stock | null>(null)
-const stocks = ref<Stock[]>([])
-const loading = ref(false)
-const error = ref<string | null>(null)
+
+// Use store's state directly
+const stocks = computed(() => inventoryStore.stocks)
+const loading = computed(() => inventoryStore.loading)
+const error = computed(() => inventoryStore.error)
 
 interface Column {
   key: string
@@ -122,37 +127,20 @@ const columns: Column[] = [
   { key: 'actions', label: 'Actions', type: 'action' }
 ]
 
-const fetchStocks = async () => {
-  loading.value = true
-  error.value = null
-  try {
-    const response = await stocksApi.getAllStocks({
-      status: 'active',
-      page: 1
-    })
-    stocks.value = response.data.data || []
-  } catch (err) {
-    error.value = 'Failed to fetch stocks'
-    console.error('Error fetching stocks:', err)
-  } finally {
-    loading.value = false
-  }
-}
-
 const handleRowClick = (stock: Stock) => {
   router.push(`/inventory/${stock.stock_id}`)
 }
 
-const handleCreateStock = async (stockData: Omit<Stock, 'stock_id' | 'date_created'>) => {
+const handleCreateStock = async (stockData: CreateStockData) => {
+  console.log(stockData);
   try {
-    await stocksApi.createStock({
+    await inventoryStore.createStock({
       ...stockData,
       userid: 1 // Replace with actual logged-in user ID
     })
     showCreateModal.value = false
-    fetchStocks() // Refresh the list
   } catch (err) {
-    console.error('Error creating stock:', err)
+    // Error is handled in the store
   }
 }
 
@@ -168,13 +156,13 @@ const handleActionClick = ({ item, action }: { item: Stock; action: string }) =>
 const handleTransferSubmit = async (data: { location: string; quantity: number; transferBy: string }) => {
   if (selectedStock.value) {
     try {
-      await stocksApi.updateStock(selectedStock.value.stock_id, {
-        // Add your transfer logic here
+      await inventoryStore.updateStock(selectedStock.value.stock_id, {
+        stock_status: true, // Update with actual transfer logic
+        // Add transfer-specific fields here
       })
       showTransferModal.value = false
-      fetchStocks() // Refresh the list
     } catch (err) {
-      console.error('Error transferring stock:', err)
+      // Error is handled in the store
     }
   }
 }
@@ -182,19 +170,19 @@ const handleTransferSubmit = async (data: { location: string; quantity: number; 
 const handlePurchaseSubmit = async (data: { date: string; location: string; quantity: number; price: number; inputBy: string }) => {
   if (selectedStock.value) {
     try {
-      await stocksApi.updateStock(selectedStock.value.stock_id, {
-        // Add your purchase logic here
+      await inventoryStore.updateStock(selectedStock.value.stock_id, {
+        stock_status: true, // Update with actual purchase logic
+        // Add purchase-specific fields here
       })
       showPurchaseModal.value = false
-      fetchStocks() // Refresh the list
     } catch (err) {
-      console.error('Error purchasing stock:', err)
+      // Error is handled in the store
     }
   }
 }
 
 // Fetch stocks when component mounts
 onMounted(() => {
-  fetchStocks()
+  inventoryStore.fetchStocks()
 })
 </script> 

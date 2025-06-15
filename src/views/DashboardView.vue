@@ -17,11 +17,12 @@ import {
   MagnifyingGlassIcon
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/components/AppLayout.vue'
-import BaseInput from '@/components/BaseInput.vue'
+import BaseInput from '@/components/common/BaseInput.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const isMobileMenuOpen = ref(false)
+const searchQuery = ref('')
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
@@ -110,6 +111,7 @@ const waiters = ref<Waiter[]>([
           <MagnifyingGlassIcon class="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2
             light:text-gray-400 dark:text-gray-400 midnight:text-gray-400" />
           <BaseInput
+            v-model="searchQuery"
             type="text"
             placeholder="Search"
             class="w-full lg:w-64 pl-10 pr-4 py-2 rounded-lg transition-colors duration-200

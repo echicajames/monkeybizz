@@ -4,17 +4,17 @@ export interface Stock {
   stock_id: number
   stock_code: string
   stock_name: string
-  stock_status: 'active' | 'inactive' | 'out_of_stock'
-  stock_type: string
+  stock_status: boolean
+  category: string
   userid: number
-  date_created: string
+  date_created?: string
 }
 
 export interface CreateStockData {
   stock_code: string
   stock_name: string
-  stock_status: Stock['stock_status']
-  stock_type: string
+  stock_status: boolean
+  category: string
   userid: number
 }
 
@@ -25,7 +25,7 @@ export interface StockFilters {
   per_page?: number
   search?: string
   status?: Stock['stock_status']
-  type?: string
+  category?: string
   start_date?: string
   end_date?: string
   user_id?: number
@@ -52,9 +52,9 @@ export const stocksApi = {
   deleteStock: (stockId: number) => 
     api.delete(`/stocks/${stockId}`),
 
-  // Get stocks by type
-  getStocksByType: (type: string) => 
-    api.get(`/stocks/by-type/${type}`),
+  // Get stocks by category
+  getStocksByCategory: (category: string) => 
+    api.get(`/stocks/by-category/${category}`),
 
   // Get stocks by status
   getStocksByStatus: (status: Stock['stock_status']) => 
