@@ -5,6 +5,7 @@ interface Column {
   key: string;
   label: string;
   type?: 'action';
+  formatter?: (value: any) => string;
 }
 
 interface Props {
@@ -67,49 +68,45 @@ const handleActionClick = (e: Event, item: any, action: string) => {
 
     <!-- Table -->
     <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
-      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-          <tr>
-            <th
-              v-for="column in columns"
-              :key="column.key"
-              scope="col"
-              class="py-3 px-6"
-            >
-              {{ column.label }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="item in filteredData"
-            :key="item.id"
-            @click="handleRowClick(item)"
-            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
-          >
-            <td
-              v-for="column in columns"
-              :key="column.key"
-              class="py-4 px-6"
-            >
-              <template v-if="column.type === 'action'">
-                <slot :name="column.key" :item="item" :onClick="(e: Event) => handleActionClick(e, item, column.key)">
-                  <!-- Default action button if no slot is provided -->
-                  <button
-                    @click="(e) => handleActionClick(e, item, column.key)"
-                    class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                  >
-                    {{ column.label }}
-                  </button>
-                </slot>
-              </template>
-              <template v-else>
-                {{ item[column.key] }}
-              </template>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="inline-block min-w-full align-middle">
+        <div class="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5">
+          <table class="min-w-full divide-y divide-gray-700">
+            <thead class="bg-gray-800">
+              <tr>
+                <th
+                  v-for="column in columns"
+                  :key="column.key"
+                  scope="col"
+                  class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-200 sm:pl-6"
+                >
+                  {{ column.label }}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700 bg-gray-800">
+              <tr
+                v-for="(item, index) in filteredData"
+                :key="index"
+                class="hover:bg-gray-700 cursor-pointer"
+                @click="$emit('rowClick', item)"
+              >
+                <td
+                  v-for="column in columns"
+                  :key="column.key"
+                  class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-200 sm:pl-6"
+                >
+                  <template v-if="column.type === 'action'">
+                    <slot name="actions" :item="item"></slot>
+                  </template>
+                  <template v-else>
+                    {{ column.formatter ? column.formatter(item[column.key]) : item[column.key] }}
+                  </template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </template> 

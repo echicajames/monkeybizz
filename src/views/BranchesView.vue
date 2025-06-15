@@ -91,6 +91,7 @@ import Modal from '@/components/common/Modal.vue'
 import BranchForm from '@/components/branch/BranchForm.vue'
 import { useBranches } from '@/composables/useBranches'
 import type { Branch } from '@/services/api/branches'
+import dayjs from 'dayjs'
 
 const router = useRouter()
 const { 
@@ -107,12 +108,17 @@ interface Column {
   key: string
   label: string
   type?: 'action'
+  formatter?: (value: any) => string
+}
+
+const formatDate = (date: string) => {
+  return dayjs(date).format('dddd, MMMM D, YYYY')
 }
 
 const columns: Column[] = [
   { key: 'name', label: 'Branch Name' },
   { key: 'address', label: 'Address' },
-  { key: 'date_opened', label: 'Date Opened' },
+  { key: 'date_opened', label: 'Date Opened', formatter: formatDate },
   { key: 'rent_type', label: 'Rent Type' },
   { key: 'rent_amount', label: 'Rent Amount' },
   { key: 'status', label: 'Status' },
