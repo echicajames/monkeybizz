@@ -1,7 +1,6 @@
 <template>
   <AppLayout>
     <div class="container mx-auto px-4">
-      branch {{ branch }}
       <div class="mb-6">
         <BaseButton
           @click="router.back()"
@@ -27,6 +26,7 @@
 
       <!-- Content -->
       <div v-else-if="stock && branch" class="space-y-8">
+        Lets go
         <!-- Stock Info Card -->
         <div class="bg-white/10 dark:bg-gray-800/50 rounded-lg p-6 shadow-lg">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -63,14 +63,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed,ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppLayout from '@/components/AppLayout.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
 import TransactionHistory from '@/components/transaction/TransactionHistory.vue'
 import { useInventoryStore } from '@/stores/inventory'
 import { useBranchesStore } from '@/stores/branches'
-import type { Stock } from '@/types/Stock'
+import type { Stock } from '@/services/api/stocks'
 import type { Transaction } from '@/types/Transaction'
 import type { Branch } from '@/services/api/branches'
 
@@ -84,7 +84,7 @@ const branch = ref<Branch | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-// Mock transaction data
+// Mock transaction data - only storing in/out values
 const rawTransactions = ref<Transaction[]>([
   {
     date: new Date('2024-03-20'),
@@ -106,10 +106,27 @@ const rawTransactions = ref<Transaction[]>([
     out: 0,
     type: 'From Main',
     inputBy: 'David Chen'
+  },
+  {
+    date: new Date('2024-03-17'),
+    in: 0,
+    out: 5,
+    type: 'Sold',
+    inputBy: 'Sarah Johnson'
+  },
+  {
+    date: new Date('2024-03-16'),
+    in: 7,
+    out: 0,
+    type: 'From Main',
+    inputBy: 'Michael Lee'
   }
 ])
 
+const stocks = computed(() => inventoryStore.stocks)
+
 onMounted(async () => {
+  await inventoryStore.fetchStocks();
   try {
     loading.value = true
     error.value = null
@@ -127,7 +144,9 @@ onMounted(async () => {
     branch.value = branchData
 
     // Get stock data
-    const stockData = await inventoryStore.getStockById(stockId)
+    const stockData = inventoryStore.stocks.find(s => s.stock_id === stockId);
+     //|| await inventoryStore.getStockById(stockId)
+    
     if (!stockData) {
       throw new Error('Stock not found')
     }

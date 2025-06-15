@@ -50,6 +50,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/branches/:locationId/stocks',
+      name: 'branchInventory',
+      component: InventoryView,
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/reports',
       name: 'reports',
       component: ReportView,
