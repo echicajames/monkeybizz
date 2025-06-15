@@ -1,31 +1,62 @@
 <template>
   <AppLayout>
     <div class="container mx-auto px-4">
-      <h2 class="text-2xl font-bold mb-8 text-white">Branches</h2>
+      <div class="mb-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-white">Branch Management</h1>
+        <BaseButton
+          @click="showCreateModal = true"
+        >
+          Create Branch
+        </BaseButton>
+      </div>
+
+      <!-- Error Message -->
+      <div v-if="error" class="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
+        {{ error }}
+      </div>
       
+      <!-- Loading State -->
+      <div v-if="loading" class="text-center py-4">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-indigo-600"></div>
+        <p class="mt-2 text-gray-400">Loading branches...</p>
+      </div>
+
+      <!-- Data Table -->
       <DataTable
+        v-else
         :columns="columns"
         :data="branches"
+        :search-placeholder="'Search branches...'"
+        @row-click="handleRowClick"
         @action-click="handleActionClick"
       >
-        <template #actions="{ item, onClick }">
+        <template #actions="{ item }">
           <div class="flex space-x-2">
             <BaseButton
-              @click="() => onClick('inventory', item)"
+              @click="(e) => {
+                e.stopPropagation();
+                handleActionClick({ item, action: 'inventory' });
+              }"
               variant="secondary"
               size="sm"
             >
               Inventory
             </BaseButton>
             <BaseButton
-              @click="() => onClick('reports', item)"
+              @click="(e) => {
+                e.stopPropagation();
+                handleActionClick({ item, action: 'reports' });
+              }"
               variant="secondary"
               size="sm"
             >
               Reports
             </BaseButton>
             <BaseButton
-              @click="() => onClick('assets', item)"
+              @click="(e) => {
+                e.stopPropagation();
+                handleActionClick({ item, action: 'assets' });
+              }"
               variant="secondary"
               size="sm"
             >
@@ -34,94 +65,89 @@
           </div>
         </template>
       </DataTable>
+
+      <!-- Create Branch Modal -->
+      <Modal
+        :is-open="showCreateModal"
+        title="Create New Branch"
+        @close="showCreateModal = false"
+      >
+        <BranchForm
+          @submit="handleCreateBranch"
+          @cancel="showCreateModal = false"
+        />
+      </Modal>
     </div>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppLayout from '@/components/AppLayout.vue'
 import DataTable from '@/components/common/DataTable.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
-
-interface Branch {
-  id: string;
-  name: string;
-  location: string;
-  dateStarted: string;
-  status: 'active' | 'inactive';
-}
+import Modal from '@/components/common/Modal.vue'
+import BranchForm from '@/components/branch/BranchForm.vue'
+import { useBranches } from '@/composables/useBranches'
+import type { Branch } from '@/services/api/branches'
 
 const router = useRouter()
+const { 
+  branches, 
+  loading, 
+  error, 
+  fetchBranches, 
+  createBranch 
+} = useBranches()
 
-const columns = [
+const showCreateModal = ref(false)
+
+interface Column {
+  key: string
+  label: string
+  type?: 'action'
+}
+
+const columns: Column[] = [
   { key: 'name', label: 'Branch Name' },
-  { key: 'location', label: 'Location' },
-  { key: 'dateStarted', label: 'Date Started' },
+  { key: 'address', label: 'Address' },
+  { key: 'date_opened', label: 'Date Opened' },
+  { key: 'rent_type', label: 'Rent Type' },
+  { key: 'rent_amount', label: 'Rent Amount' },
   { key: 'status', label: 'Status' },
-  { key: 'actions', label: '', type: 'action' }
+  { key: 'actions', label: 'Actions', type: 'action' }
 ]
 
-const branches = ref<Branch[]>([
-  {
-    id: 'nohs',
-    name: 'NOHS',
-    location: 'North Road, Dumaguete City',
-    dateStarted: '2022-01-15',
-    status: 'active'
-  },
-  {
-    id: 'boloc',
-    name: 'BOLOC',
-    location: 'Boloc-Boloc, Sibulan',
-    dateStarted: '2022-03-01',
-    status: 'active'
-  },
-  {
-    id: 'sibulan',
-    name: 'SIBULAN',
-    location: 'Sibulan Town Center',
-    dateStarted: '2022-04-20',
-    status: 'active'
-  },
-  {
-    id: 'camanjac',
-    name: 'CAMANJAC',
-    location: 'Camanjac, Dumaguete City',
-    dateStarted: '2022-06-10',
-    status: 'active'
-  },
-  {
-    id: 'junob',
-    name: 'JUNOB',
-    location: 'Junob, Dumaguete City',
-    dateStarted: '2022-08-05',
-    status: 'active'
-  },
-  {
-    id: 'taclobo',
-    name: 'TACLOBO',
-    location: 'Taclobo, Dumaguete City',
-    dateStarted: '2022-10-15',
-    status: 'active'
+const handleRowClick = (branch: Branch) => {
+  router.push(`/branches/${branch.branch_id}`)
+}
+
+const handleCreateBranch = async (branchData: any) => {
+  try {
+    await createBranch(branchData)
+    showCreateModal.value = false
+  } catch (err) {
+    // Error is handled in the composable
   }
-])
+}
 
 const handleActionClick = ({ item, action }: { item: Branch; action: string }) => {
   switch (action) {
     case 'inventory':
-      console.log('View inventory for:', item.name)
-      // router.push(`/branches/${item.id}/inventory`)
+      router.push(`/branches/${item.branch_id}/inventory`)
       break
     case 'reports':
-      console.log('View reports for:', item.name)
-      // router.push(`/branches/${item.id}/reports`)
+      router.push(`/branches/${item.branch_id}/reports`)
       break
     case 'assets':
-      console.log('View assets for:', item.name)
-      // router.push(`/branches/${item.id}/assets`)
+      router.push(`/branches/${item.branch_id}/assets`)
       break
   }
 }
+
+// Fetch branches when component mounts
+onMounted(() => {
+  fetchBranches()
+})
 </script> 
