@@ -36,6 +36,18 @@
         <template #actions="{ item }">
           <div class="flex space-x-2">
             <BaseButton
+              v-if="isBranchView"
+              @click="(e) => {
+                e.stopPropagation();
+                handleActionClick({ item, action: 'inventory' });
+              }"
+              variant="primary"
+              size="sm"
+            >
+              Inventory
+            </BaseButton>
+
+            <BaseButton
               @click="(e) => {
                 e.stopPropagation();
                 handleActionClick({ item, action: 'transfer' });
@@ -50,7 +62,7 @@
                 e.stopPropagation();
                 handleActionClick({ item, action: 'purchase' });
               }"
-              variant="primary"
+              variant="secondary"
               size="sm"
             >
               Purchase Stock
@@ -168,6 +180,8 @@ const handleActionClick = ({ item, action }: { item: Stock; action: string }) =>
     showTransferModal.value = true
   } else if (action === 'purchase') {
     showPurchaseModal.value = true
+  } else if (action === 'inventory') {
+    router.push(`/inventory/${locationId.value}/${item.stock_id}`)
   }
 }
 
