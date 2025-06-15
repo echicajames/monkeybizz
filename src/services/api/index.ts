@@ -5,10 +5,13 @@ export { salesApi } from './sales'
 export { inventoryApi } from './inventory'
 export { stocksApi } from './stocks'
 export { usersApi } from './users'
+export { branchesApi } from './branches'
 
 // Re-export types
 export type { LoginCredentials, RegisterData } from './auth'
 export type { Sale, SaleItem, CreateSaleData } from './sales'
 export type { Product, StockMovement, CreateProductData } from './inventory'
 export type { Stock, CreateStockData, UpdateStockData, StockFilters } from './stocks'
-export type { User, CreateUserData, UpdateUserData, UserFilters } from './users' 
+export type { User, CreateUserData, UpdateUserData, UserFilters } from './users'
+export type { Branch, CreateBranchData } from './branches'
+export type { Inventory, CreateInventoryData, UpdateInventoryData, InventoryFilters } 
