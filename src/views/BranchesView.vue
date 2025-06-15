@@ -135,7 +135,7 @@ const handleCreateBranch = async (branchData: any) => {
 const handleActionClick = ({ item, action }: { item: Branch; action: string }) => {
   switch (action) {
     case 'inventory':
-      router.push(`/branches/${item.branch_id}/inventory`)
+      router.push(`/branches/${item.branch_id}/stocks`)
       break
     case 'reports':
       router.push(`/branches/${item.branch_id}/reports`)

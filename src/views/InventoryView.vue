@@ -2,7 +2,10 @@
   <AppLayout>
     <div class="container mx-auto px-4">
       <div class="mb-6 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-white">Inventory Management</h1>
+        <div>
+          <h1 class="text-2xl font-bold text-white">Inventory Management</h1>
+          <p v-if="isBranchView && branchName" class="text-gray-400 mt-1">{{ branchName }}</p>
+        </div>
         <BaseButton
           @click="showCreateModal = true"
         >
@@ -89,7 +92,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import DataTable from '@/components/common/DataTable.vue'
 import Modal from '@/components/common/Modal.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
@@ -98,20 +101,35 @@ import TransferStockModal from '@/components/modals/TransferStockModal.vue'
 import PurchaseStockModal from '@/components/modals/PurchaseStockModal.vue'
 import AppLayout from '@/components/AppLayout.vue'
 import { useInventoryStore } from '@/stores/inventory'
+import { useBranchesStore } from '@/stores/branches'
 import type { Stock, CreateStockData } from '@/services/api/stocks'
+import type { Branch } from '@/services/api/branches'
 
 const router = useRouter()
+const route = useRoute()
 const inventoryStore = useInventoryStore()
+const branchesStore = useBranchesStore()
 
 const showCreateModal = ref(false)
 const showTransferModal = ref(false)
 const showPurchaseModal = ref(false)
 const selectedStock = ref<Stock | null>(null)
 
+// Check if we're in a branch-specific view
+const isBranchView = computed(() => route.params.locationId !== undefined)
+const locationId = computed(() => isBranchView.value ? Number(route.params.locationId) : null)
+
 // Use store's state directly
 const stocks = computed(() => inventoryStore.stocks)
 const loading = computed(() => inventoryStore.loading)
 const error = computed(() => inventoryStore.error)
+
+// Get branch name if in branch view
+const branchName = computed(() => {
+  if (!isBranchView.value || !locationId.value) return ''
+  const branch = branchesStore.branches.find(b => b.branch_id === locationId.value)
+  return branch?.name || ''
+})
 
 interface Column {
   key: string
@@ -182,7 +200,14 @@ const handlePurchaseSubmit = async (data: { date: string; location: string; quan
 }
 
 // Fetch stocks when component mounts
-onMounted(() => {
+onMounted(async () => {
+  if (isBranchView.value && locationId.value) {
+    // Ensure we have branch data
+    const branch = branchesStore.branches.find(b => b.branch_id === locationId.value)
+    if (!branch) {
+      await branchesStore.getBranchById(locationId.value)
+    }
+  }
   inventoryStore.fetchStocks()
 })
 </script> 
