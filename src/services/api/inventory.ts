@@ -2,18 +2,26 @@ import api from './config'
 
 export interface Inventory {
   id: number
-  stock_id: number
   branch_id: number
+  stock_id: number
   quantity: number
-  last_updated: string
-  updated_by: number
+  type: 'stock_in' | 'stock_out'
+  reason: string
+  status: boolean
+  tag: string
+  date_created: string
+  created_at: string
+  updated_at: string
 }
 
 export interface CreateInventoryData {
-  stock_id: number
   branch_id: number
+  stock_id: number
   quantity: number
-  updated_by: number
+  type: 'stock_in' | 'stock_out'
+  reason: string
+  status: boolean
+  tag: string
 }
 
 export interface UpdateInventoryData extends Partial<CreateInventoryData> {}
@@ -24,6 +32,8 @@ export interface InventoryFilters {
   search?: string
   stock_id?: number
   branch_id?: number
+  type?: Inventory['type']
+  status?: boolean
   start_date?: string
   end_date?: string
 }
@@ -62,6 +72,10 @@ export const inventoryApi = {
     api.get(`/inventory/branch/${branchId}`),
 
   // Adjust inventory quantity
-  adjustQuantity: (id: number, data: { quantity: number; updated_by: number }) =>
-    api.post(`/inventory/${id}/adjust`, data)
-} 
+  adjustQuantity: (id: number, data: { 
+    quantity: number
+    type: Inventory['type']
+    reason: string
+    tag: string
+  }) => api.post(`/inventory/${id}/adjust`, data)
+}
