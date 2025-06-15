@@ -117,7 +117,7 @@ interface Column {
 const columns: Column[] = [
   { key: 'stock_code', label: 'Stock Code' },
   { key: 'stock_name', label: 'Stock Name' },
-  { key: 'stock_type', label: 'Type' },
+  { key: 'category', label: 'Category' },
   { key: 'stock_status', label: 'Status' },
   { key: 'actions', label: 'Actions', type: 'action' }
 ]
