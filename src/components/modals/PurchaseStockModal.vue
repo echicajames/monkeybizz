@@ -7,18 +7,17 @@
     <div class="space-y-4">
       <div>
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          Purchasing stock: <span class="font-medium text-gray-900 dark:text-white">{{ stock?.name }}</span>
+          Purchasing stock: <span class="font-medium text-gray-900 dark:text-white">{{ stock?.stock_name }}</span>
         </p>
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Purchase Date
         </label>
-        <input
+        <BaseInput
           v-model="form.date"
           type="date"
           required
-          class="w-full rounded-md border-gray-300 dark:border-gray-600 bg-white/5 shadow-sm focus:border-primary-500 focus:ring-primary-500"
         />
       </div>
       <BaseSelect
@@ -75,7 +74,7 @@ import Modal from '@/components/common/Modal.vue'
 import BaseInput from '@/components/common/BaseInput.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
-import type { Stock } from '@/types/Stock'
+import type { Stock } from '@/services/api/stocks'
 
 const props = defineProps<{
   show: boolean
@@ -116,8 +115,8 @@ const isFormValid = computed(() => {
   return (
     form.value.date &&
     form.value.location &&
-    form.value.quantity > 0 &&
-    form.value.price >= 0 &&
+    Number(form.value.quantity) > 0 &&
+    Number(form.value.price) >= 0 &&
     form.value.inputBy
   )
 })
