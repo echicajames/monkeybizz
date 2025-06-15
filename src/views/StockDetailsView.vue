@@ -117,23 +117,20 @@ onMounted(async () => {
     const locationId = parseInt(route.params.locationId as string)
     const stockId = parseInt(route.params.stockId as string)
 
-    console.log('Fetching branch:', locationId)
-    const branchData = await branchesStore.getBranchById(locationId)
-    console.log('Branch data:', branchData)
-
+    // Get branch data from store or fetch if not exists
+    const branchData = branchesStore.branches.find(b => b.branch_id === locationId) || 
+                      await branchesStore.getBranchById(locationId)
+    
     if (!branchData) {
       throw new Error('Branch not found')
     }
+    branch.value = branchData
 
-    console.log('Fetching stock:', stockId)
+    // Get stock data
     const stockData = await inventoryStore.getStockById(stockId)
-    console.log('Stock data:', stockData)
-
     if (!stockData) {
       throw new Error('Stock not found')
     }
-
-    branch.value = branchData
     stock.value = stockData
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load details'
