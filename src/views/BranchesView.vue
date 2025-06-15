@@ -9,14 +9,12 @@
           Create Branch
         </BaseButton>
       </div>
-
       <!-- Error Message -->
-      <div v-if="error" class="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
-        {{ error }}
+      <div v-if="branchesStore.error" class="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
+        {{ branchesStore.error }}
       </div>
-      
       <!-- Loading State -->
-      <div v-if="loading" class="text-center py-4">
+      <div v-if="branchesStore.loading" class="text-center py-4">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-indigo-600"></div>
         <p class="mt-2 text-gray-400">Loading branches...</p>
       </div>
@@ -25,7 +23,7 @@
       <DataTable
         v-else
         :columns="columns"
-        :data="branches"
+        :data="branchesStore.branches"
         :search-placeholder="'Search branches...'"
         @row-click="handleRowClick"
         @action-click="handleActionClick"
@@ -82,25 +80,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppLayout from '@/components/AppLayout.vue'
 import DataTable from '@/components/common/DataTable.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
 import Modal from '@/components/common/Modal.vue'
 import BranchForm from '@/components/branch/BranchForm.vue'
-import { useBranches } from '@/composables/useBranches'
+import { useBranchesStore } from '@/stores/branches'
 import type { Branch } from '@/services/api/branches'
 import dayjs from 'dayjs'
 
 const router = useRouter()
-const { 
-  branches, 
-  loading, 
-  error, 
-  fetchBranches, 
-  createBranch 
-} = useBranches()
+const branchesStore = useBranchesStore()
+
+const { branches } = useBranchesStore()
 
 const showCreateModal = ref(false)
 
@@ -131,10 +125,10 @@ const handleRowClick = (branch: Branch) => {
 
 const handleCreateBranch = async (branchData: any) => {
   try {
-    await createBranch(branchData)
+    await branchesStore.createBranch(branchData)
     showCreateModal.value = false
   } catch (err) {
-    // Error is handled in the composable
+    // Error is handled in the store
   }
 }
 
@@ -153,7 +147,7 @@ const handleActionClick = ({ item, action }: { item: Branch; action: string }) =
 }
 
 // Fetch branches when component mounts
-onMounted(() => {
-  fetchBranches()
+onMounted(async() => {
+  await branchesStore.fetchBranches()
 })
 </script> 

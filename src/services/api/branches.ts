@@ -1,3 +1,4 @@
+import type { AxiosResponse } from 'axios'
 import api from './config'
 
 export interface Branch {
@@ -5,7 +6,7 @@ export interface Branch {
   name: string
   address: string
   date_opened: string
-  status: boolean
+  status: 'active' | 'inactive'
   rent_amount: number
   rent_type: 'daily' | 'weekly' | 'monthly'
   date_created: string
@@ -16,10 +17,9 @@ export interface CreateBranchData {
   name: string
   address: string
   date_opened: string
-  status: boolean
+  rent_type: 'daily' | 'weekly' | 'monthly'
   rent_amount: number
-  rent_type: Branch['rent_type']
-  userid: number
+  status: 'active' | 'inactive'
 }
 
 export interface UpdateBranchData extends Partial<CreateBranchData> {}
@@ -36,25 +36,25 @@ export interface BranchFilters {
 }
 
 export const branchesApi = {
-  // Get all branches with optional filtering
-  getAllBranches: (filters?: BranchFilters) => 
-    api.get('/branches', { params: filters }),
+  getAllBranches: async (): Promise<AxiosResponse<Branch[]>> => {
+    return api.get('/branches')
+  },
 
-  // Get a specific branch by ID
-  getBranch: (branchId: number) => 
-    api.get(`/branches/${branchId}`),
+  getBranch: async (id: number): Promise<AxiosResponse<Branch>> => {
+    return api.get(`/branches/${id}`)
+  },
 
-  // Create a new branch
-  createBranch: (data: CreateBranchData) => 
-    api.post('/branches', data),
+  createBranch: async (data: CreateBranchData): Promise<AxiosResponse<Branch>> => {
+    return api.post('/branches', data)
+  },
 
-  // Update a branch
-  updateBranch: (branchId: number, data: UpdateBranchData) => 
-    api.put(`/branches/${branchId}`, data),
+  updateBranch: async (id: number, data: Partial<CreateBranchData>): Promise<AxiosResponse<Branch>> => {
+    return api.put(`/branches/${id}`, data)
+  },
 
-  // Delete a branch
-  deleteBranch: (branchId: number) => 
-    api.delete(`/branches/${branchId}`),
+  deleteBranch: async (id: number): Promise<AxiosResponse<void>> => {
+    return api.delete(`/branches/${id}`)
+  },
 
   // Get branches by status
   getBranchesByStatus: (status: boolean) => 

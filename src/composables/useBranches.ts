@@ -22,7 +22,9 @@ export function useBranches() {
     error.value = null
     try {
       const response = await branchesApi.getAllBranches(filters)
+      console.log('response', response.data.data);
       branches.value = response.data.data || []
+      console.log('branches', branches.value);
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch branches'
       console.error('Error fetching branches:', err)
