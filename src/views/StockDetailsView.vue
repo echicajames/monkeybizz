@@ -55,7 +55,7 @@
         </div>
 
         <!-- Transaction History -->
-        <TransactionHistory :transactions="rawTransactions" />
+        <TransactionHistory :transactions="inventoryMap" />
       </div>
     </div>
   </AppLayout>
@@ -78,7 +78,7 @@ const route = useRoute()
 const router = useRouter()
 const inventoryStore = useInventoryStore()
 const branchesStore = useBranchesStore()
-const { getInventoryByStockAndBranch } = useInventory()
+const { inventory, inventoryMap, getAllInventory, getInventoryByStockAndBranch } = useInventory()
 
 const stock = ref<Stock | null>(null)
 const branch = ref<Branch | null>(null)
@@ -124,7 +124,7 @@ const rawTransactions = ref<Transaction[]>([
   }
 ])
 
-const stocks = computed(() => inventoryStore.stocks)
+const inventoryData = computed(() => inventory.value ?? [])
 
 async function getStockInventory(stockId: number, locationId: number) {
   
@@ -138,6 +138,12 @@ async function getStockInventory(stockId: number, locationId: number) {
 
 onMounted(async () => {
   await inventoryStore.fetchStocks();
+
+  const params = {
+    stock_id: parseInt(route.params.stockId as string),
+    branch_id: parseInt(route.params.locationId as string),
+  }
+  await getAllInventory(params);
 
   const stockId = parseInt(route.params.stockId as string)
   const locationId = parseInt(route.params.locationId as string)

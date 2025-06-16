@@ -37,7 +37,7 @@
           <div class="flex space-x-2">
             <BaseButton
               v-if="isBranchView"
-              @click="(e) => {
+              @click="(e: MouseEvent) => {
                 e.stopPropagation();
                 handleActionClick({ item, action: 'inventory' });
               }"
@@ -48,7 +48,7 @@
             </BaseButton>
 
             <BaseButton
-              @click="(e) => {
+              @click="(e: MouseEvent) => {
                 e.stopPropagation();
                 handleActionClick({ item, action: 'transfer' });
               }"
@@ -58,7 +58,7 @@
               Transfer Stock
             </BaseButton>
             <BaseButton
-              @click="(e) => {
+              @click="(e: MouseEvent) => {
                 e.stopPropagation();
                 handleActionClick({ item, action: 'purchase' });
               }"

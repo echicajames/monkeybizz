@@ -1,9 +1,10 @@
 import api from './config'
 
 export interface Inventory {
-  id: number
+  inventory_id: number
   branch_id: number
   stock_id: number
+  userid: number,
   quantity: number
   type: 'stock_in' | 'stock_out'
   reason: string

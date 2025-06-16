@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Transaction, TransactionType, TransactionWithTotal } from '@/types/Transaction'
+import dayjs from 'dayjs';
 
 const props = defineProps<{
   transactions: Transaction[]
 }>()
 
 const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  }).format(date)
+  return dayjs(date).format('DD/MM/YYYY');
 }
 
 // Get the appropriate color class for transaction type
@@ -22,6 +19,10 @@ const getTypeColorClass = (type: TransactionType) => {
     case 'Repurchased':
       return 'text-purple-600 dark:text-purple-400'
     case 'Sold':
+      return 'text-orange-600 dark:text-orange-400'
+    case 'stock_in':
+      return 'text-purple-600 dark:text-purple-400'
+    case 'stock_out':
       return 'text-orange-600 dark:text-orange-400'
     default:
       return 'text-gray-600 dark:text-gray-400'
@@ -59,6 +60,9 @@ const processedTransactions = computed<TransactionWithTotal[]>(() => {
               Transaction Date
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              Input By
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Type
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -70,15 +74,15 @@ const processedTransactions = computed<TransactionWithTotal[]>(() => {
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Current Qty
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Input By
-            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
           <tr v-for="transaction in processedTransactions" :key="transaction.date" class="hover:bg-gray-100/10">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
               {{ formatDate(transaction.date) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              {{ transaction.inputBy }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" :class="getTypeColorClass(transaction.type)">
               {{ transaction.type }}
@@ -91,9 +95,6 @@ const processedTransactions = computed<TransactionWithTotal[]>(() => {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
               {{ transaction.currentQty }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-              {{ transaction.inputBy }}
             </td>
           </tr>
         </tbody>

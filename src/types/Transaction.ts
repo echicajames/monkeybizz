@@ -1,4 +1,4 @@
-export type TransactionType = 'From Main' | 'Repurchased' | 'Sold'
+export type TransactionType = 'From Main' | 'Repurchased' | 'Sold' | 'stock_out' | 'stock_in'
 
 export interface Transaction {
   date: Date;
