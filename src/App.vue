@@ -11,7 +11,7 @@ onMounted(() => {
 
 // Watch for theme changes
 watch(() => themeStore.current, (newTheme) => {
-  document.documentElement.classList.remove('light', 'dark', 'midnight')
+  document.documentElement.classList.remove('midnight', 'light', 'dark')
   document.documentElement.classList.add(newTheme)
 })
 </script>
